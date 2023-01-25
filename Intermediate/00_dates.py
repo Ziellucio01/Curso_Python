@@ -1,5 +1,26 @@
 ### Dates ###
 
-import datetime
+from datetime import datetime
 
-now = datetime.datetime
+now = datetime.now()
+
+print(now.year)
+print(now.month)
+print(now.day)
+print(now.hour)
+print(now.minute)
+print(now.second)
+
+timestamp = now.timestamp()
+
+print(timestamp)
+
+year_2023 = datetime(2023,1,1)
+
+def print_date(date):
+    print(now.year)
+    print(now.month)
+    print(now.day)
+    print(now.hour)
+    print(now.minute)
+    print(now.second)
