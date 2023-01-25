@@ -40,3 +40,10 @@ def print_name_with_default(name, surname, alias="Sin alias"):
 
 print_name_with_default("Brais", "Moure")
 print_name_with_default("Brais", "Moure", "MoureDev")
+
+def print_upper_texts(*texts):
+    for text in texts:
+        print(text.upper())
+
+print_upper_texts("Hola", "Python", "MoureDev")
+print_upper_texts("Hola")
