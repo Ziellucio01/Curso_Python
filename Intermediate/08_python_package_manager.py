@@ -23,10 +23,14 @@ print(numpy_array * 2)
 # pip show numpy
 # import requests
 
-response = requests.get("https://pokeapi.co/api/v2/pokemon?limit=151")
+response = requests.get("https://pokeapi.co/api/v2/pokemon?limit=300")
 print(response)
 print(response.status_code)
 print(response.json())
+
+for index, pokemon in enumerate(response.json()["results"]):
+    pokemon_name = pokemon["name"]
+    print(f"#{index +1} {pokemon_name}")
 
 # Arithmetics Package
 
