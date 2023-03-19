@@ -1,12 +1,13 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from pydantic import BaseModel
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from jose import jwt
+from jose import jwt, JWTError
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 
-ALGORITHM = "H256"
+ALGORITHM = "HS256"
 ACCESS_TOKE_DURATION = 1
+SECRET = "ab169a91413d514e3e5604b886de57c8be5e59ad21ce13d08bbeb202bc776c29"
 app = FastAPI()
 
 oauth2 = OAuth2PasswordBearer(tokenUrl="login")
@@ -48,6 +49,37 @@ def search_user_db(username: str):
         return UserDB(**users_db[username])
 
 
+def search_user(username: str):
+    if username in users_db:
+        return User(**users_db[username])
+
+
+async def auth_user(token: str = Depends(oauth2)):
+    exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                              detail="Credenciales de autentificación invalidas",
+                              headers={"WWW-Authenticate": "Bearer"})
+
+    try:
+        username = jwt.decode(token, SECRET, algorithms=[ALGORITHM]).get("sub")
+        if username is None:
+            raise exception
+
+    except JWTError:
+        raise exception
+
+    return search_user(username)
+
+
+async def current_user(user: User = Depends(auth_user)):
+
+    if user.disable:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Usuario inactivo")
+
+    return user
+
+
 @app.post("/login")
 async def login(form: OAuth2PasswordRequestForm = Depends()):
     user_db = users_db.get(form.username)
@@ -66,4 +98,10 @@ async def login(form: OAuth2PasswordRequestForm = Depends()):
     access_token = {"sub": user.username,
                     "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKE_DURATION)}
 
-    return {"access token": jwt.encode(access_token, algorithm=ALGORITHM), "token_type": "bearer"}
+    return {"access token": jwt.encode(access_token, SECRET,
+                                       algorithm=ALGORITHM), "token_type": "bearer"}
+
+
+@app.get("/users/me")
+async def me(user: User = Depends(current_user)):
+    return user
